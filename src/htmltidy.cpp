@@ -6,11 +6,12 @@
 // NOTE: cannot do "using namespace Rcpp;" b/c of annoying warnings about the ambiguity of 'yes'.
 
 //[[Rcpp::export]]
-std::string tidy_html_int(std::string source, Rcpp::List options) {
+Rcpp::CharacterVector tidy_html_int(std::string source, Rcpp::List options,
+                                    bool show_errors) {
 
   TidyBuffer output = {0};
   TidyBuffer errbuf = {0};
-  int rc = -1;
+  int rc = -1, max_rc = -1;
   Bool ok;
 
   TidyDoc tdoc = tidyCreate();
@@ -175,32 +176,59 @@ std::string tidy_html_int(std::string source, Rcpp::List options) {
     if (ok == no) Rcpp::stop("Error setting TidyHTML options");
   }
 
+  ok = tidyOptSetBool(tdoc, TidyForceOutput, yes);
+  if (ok == no) Rcpp::stop("Error setting TidyHTML options");
+
   rc = tidySetErrorBuffer(tdoc, &errbuf);
+  max_rc = (rc > max_rc) ? rc : max_rc;
 
   if (rc<0) Rcpp::stop("Error setting TidyHTML error buffer");
 
   rc = tidyParseString(tdoc, source.c_str());
+  max_rc = (rc > max_rc) ? rc : max_rc;
 
   if (rc<0) Rcpp::stop("Error parsing source document");
 
   rc = tidyCleanAndRepair(tdoc);
+  max_rc = (rc > max_rc) ? rc : max_rc;
 
   if (rc<0) Rcpp::stop("Error tidying source document");
 
   rc = tidyRunDiagnostics(tdoc);
+  max_rc = (rc > max_rc) ? rc : max_rc;
 
   if (rc<0) Rcpp::stop("Error generating tidy diagnostics");
 
   rc = tidySaveBuffer(tdoc, &output);
+  max_rc = (rc > max_rc) ? rc : max_rc;
 
   if (rc<0) Rcpp::stop("Error converting parsed document to character vector");
 
-  std::string ret = std::string(reinterpret_cast<const char*>(output.bp));
+  std::string ret;
 
-  tidyBufFree(&output);
-  tidyBufFree(&errbuf);
+  if (output.bp) {
+    ret = std::string(reinterpret_cast<const char*>(output.bp));
+  } else {
+    ret = source;
+    show_errors = true;
+  }
+
+  if (max_rc > 1) show_errors = true;
+
+  if (show_errors) {
+    if (errbuf.allocated > 0) {
+      Rcpp::Rcout << std::string(reinterpret_cast<const char*>(errbuf.bp)) << std::endl;
+    }
+    if (max_rc > 1) {
+      Rcpp::warning("\nSevere errors were generated during document evaluation.\n");
+    }
+  }
+
+  if (output.allocated > 0) tidyBufFree(&output);
+  if (errbuf.allocated > 0) tidyBufFree(&errbuf);
+
   tidyRelease(tdoc);
 
-  return(ret);
+  return(Rcpp::wrap(ret));
 
 }

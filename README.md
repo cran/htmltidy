@@ -1,16 +1,22 @@
 
-[![Travis-CI Build Status](https://travis-ci.org/hrbrmstr/htmltidy.svg?branch=master)](https://travis-ci.org/hrbrmstr/htmltidy) <!-- [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/htmltidy)](https://cran.r-project.org/package=htmltidy) -->
+[![Travis-CI Build Status](https://travis-ci.org/hrbrmstr/htmltidy.svg?branch=master)](https://travis-ci.org/hrbrmstr/htmltidy) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/hrbrmstr/htmltidy?branch=master&svg=true)](https://ci.appveyor.com/project/hrbrmstr/htmltidy) [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/htmltidy)](https://cran.r-project.org/package=htmltidy) ![downloads](http://cranlogs.r-pkg.org/badges/grand-total/htmltidy)
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
-`htmltidy` — Clean up gnarly HTML/XHTML
+`htmltidy` — Tidy Up and Test XPath Queries on HTML and XML Content
 
-Inspired by [this SO question](http://stackoverflow.com/questions/37061873/identify-a-weblink-in-bold-in-r) and because there's a great deal of cruddy HTML out there that needs fixing to use properly when scraping data.
+Partly inspired by [this SO question](http://stackoverflow.com/questions/37061873/identify-a-weblink-in-bold-in-r) and because there's a great deal of cruddy HTML out there that needs fixing to use properly when scraping data.
 
 It relies on a locally included version of [`libtidy`](http://www.html-tidy.org/) and works on macOS, Linux & Windows.
 
+It also incorporates an `htmlwidget` to view and test XPath queries on HTML/XML content.
+
 The following functions are implemented:
 
--   `tidy_html` : Tidy or "Pretty Print" HTML/XHTML Documents
+-   `tidy_html`: Tidy or "Pretty Print" HTML/XHTML Documents
+-   `html_view`: HTML/XML pretty printer and viewer
+-   `xml_view`: HTML/XML pretty printer and viewer
+-   `html_tree_view`: HTML/XML tree viewer
+-   `xml_tree_view`: HTML/XML tree viewer
 
 ### Installation
 
@@ -25,7 +31,7 @@ library(htmltidy)
 
 # current verison
 packageVersion("htmltidy")
-## [1] '0.2.0'
+## [1] '0.3.0'
 
 library(XML)
 library(xml2)
@@ -49,7 +55,29 @@ cat(content(res, as="text"))
 ## as is this <span id="sp">portion<div>
 ```
 
-Let's see what `tidy_html()` does to it:
+Let's see what `tidy_html()` does to it.
+
+It can handle the `response` object directly:
+
+``` r
+cat(tidy_html(res, list(TidyDocType="html5", TidyWrapLen=200)))
+## <!DOCTYPE html>
+## <html>
+## <head>
+## <meta name="generator" content="HTML Tidy for HTML5 for R version 5.0.0">
+## <style>
+## body { font-family: sans-serif; }
+## </style>
+## <title></title>
+## </head>
+## <body>
+## <b>This is some <i>really</i> poorly formatted HTML as is this <span id="sp">portion</span></b>
+## <div><span id="sp"></span></div>
+## </body>
+## </html>
+```
+
+But, you'll probably mostly use it on HTML you've identified as gnarly and already have that HTML text content handy:
 
 ``` r
 cat(tidy_html(content(res, as="text"), list(TidyDocType="html5", TidyWrapLen=200)))
@@ -146,6 +174,23 @@ tidy_html(htmlParse("http://rud.is/test/untidy.html"))
 ## 
 ```
 
+And, show the markup errors:
+
+``` r
+invisible(tidy_html(url("http://rud.is/test/untidy.html"), verbose=TRUE))
+## line 1 column 1 - Warning: missing <!DOCTYPE> declaration
+## line 1 column 68 - Warning: nested emphasis <b>
+## line 1 column 138 - Warning: missing </span> before <div>
+## line 1 column 68 - Warning: missing </b> before <div>
+## line 1 column 164 - Warning: inserting implicit <span>
+## line 1 column 164 - Warning: missing </span>
+## line 1 column 159 - Warning: missing </div>
+## line 1 column 1 - Warning: inserting missing 'title' element
+## line 1 column 164 - Warning: <span> anchor "sp" already defined
+## Info: Document content looks like XHTML5
+## Tidy found 9 warnings and 0 errors!
+```
+
 ### Testing Options
 
 ``` r
@@ -197,7 +242,7 @@ sum(map_int(book, nchar))
 ## [1] 207501
 system.time(tidy_book <- tidy_html(book))
 ##    user  system elapsed 
-##   0.021   0.001   0.023
+##   0.021   0.001   0.022
 ```
 
 (It's usually between 20 & 25 milliseconds to process those 202 kilobytes of HTML.) Not too shabby.
