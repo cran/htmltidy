@@ -19,7 +19,7 @@
 #' @name htmltidy
 #' @docType package
 #' @author Bob Rudis (bob@@rud.is)
-#' @useDynLib htmltidy
 #' @importFrom Rcpp sourceCpp
 #' @import xml2 XML htmlwidgets htmltools
+#' @useDynLib htmltidy, .registration=TRUE
 NULL

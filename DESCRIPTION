@@ -1,6 +1,6 @@
 Package: htmltidy
 Title: Tidy Up and Test XPath Queries on HTML and XML Content
-Version: 0.3.1
+Version: 0.4.0
 Encoding: UTF-8
 Authors@R: c(
   person("Bob", "Rudis", email = "bob@rud.is", role = c("aut", "cre")),
@@ -45,8 +45,8 @@ NeedsCompilation: yes
 Suggests: testthat, httr, rvest
 LinkingTo: Rcpp
 Imports: Rcpp, xml2, XML, htmlwidgets, htmltools
-RoxygenNote: 6.0.0
-Packaged: 2017-02-01 22:19:43 UTC; bob
+RoxygenNote: 6.0.1
+Packaged: 2017-09-29 15:29:19 UTC; bob
 Author: Bob Rudis [aut, cre],
   Dave Raggett [ctb, aut] (Original HTML Tidy library),
   Charles Reitzel [ctb, aut] (Modern HTML Tidy library),
@@ -56,4 +56,4 @@ Author: Bob Rudis [aut, cre],
   Ivan Sagalaev [ctb, cph] (highlight.js library),
   Julian Gruber [ctb, cph] (xml-viewer library)
 Repository: CRAN
-Date/Publication: 2017-02-02 01:01:18
+Date/Publication: 2017-09-29 15:38:10 UTC
